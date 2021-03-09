@@ -7,9 +7,9 @@
 #include <algorithm>
 
 #include <stdlib.h>  //for rand just for testing 
+#include <time.h>
 
 using namespace std; 
-
 
 //fstreams can both read in and out data, unlike just ifstream and ofstreams 
 
@@ -17,7 +17,7 @@ using namespace std;
 //Takes in the fstream, 
 //Or maybe, just takes in the vector...
 double leave_one_out_cross_validation(fstream& f, vector<double> current_set, double feature_to_add) { //temporarily for testing 
-    return rand() % 100; 
+    return rand(); 
 } 
 
 
@@ -53,13 +53,34 @@ void feature_search(string& file) {//, string& file) {need to take in text file 
     
         //Maybe make a 2D array from the string stream
         //double fileArray[rows][cols];
-        vector< vector<double>> fileMatrix(rows, vector<double>(cols, 0));  //inialize a 2d vector filled with all 0s 
+        //vector< vector<double>> Data(rows, vector<double>(cols, 0));  //inialize a 2d vector filled with all 0s 
+        const int tempRows = rows;
+        const int tempCols = cols; 
+
+        //Adapted here: https://stackoverflow.com/questions/36708370/reading-from-txt-file-into-two-dimensional-array-in-c
+        double Data[tempRows][tempCols];
+        for(int i = 0; i < rows; i++)
+            for(int j = 0; j < cols; j++)
+                myFile >> Data[i][j];
+
+
+        //test print of the array 
+        /*
+        for(int i = 0; i < rows; i++) { 
+            //cout << endl;
+            for(int j = 0; j < cols ; j++) {
+                cout << Data[i][j] << " "; 
+                //if (j = rows - 1) { cout << endl;}
+            }   
+            cout << endl;
+        }
+        */
 
 
 
         //Does this need to be in the file stream? 
 
-        vector<double> current_set_of_features(cols); //initalize an empty set the size of the features
+        vector<double> current_set_of_features; //(cols); //initalize an empty set the size of the features
         double accuracy = 0; 
 
         //psuedo code part from slides
@@ -78,7 +99,7 @@ void feature_search(string& file) {//, string& file) {need to take in text file 
                 if (find(current_set_of_features.begin(), current_set_of_features.end(), k) != current_set_of_features.end()) {
                     //k feature has been added to the set 
                 }
-                else { 
+                else {  //the k feature hasn't been added yet
                     cout << "--Consider adding the " << k << "th feature" << endl;
 
                     //cout << "in the loop test" << endl;
@@ -95,13 +116,22 @@ void feature_search(string& file) {//, string& file) {need to take in text file 
                 }
     
             }
-            current_set_of_features.at(i) = feature_to_add_at_this_level;   //might need to edit this 
-            cout << "On level " << i << " I added featue " << feature_to_add_at_this_level << " to current set" << endl;
+
+            //current_set_of_features.at(i) = feature_to_add_at_this_level;   //might need to edit this 
+            current_set_of_features.push_back(feature_to_add_at_this_level);
+
+            cout << "On level " << i << " I added feature " << feature_to_add_at_this_level << " to current set" << endl;
         }
 
-        
-        cout << rows << endl;
-        cout << cols << endl;
+
+
+        //TESTING STUFF     
+            //testing size of the current set of features 
+            //for (int j = 0; j < current_set_of_features.size(); j++) { cout << current_set_of_features.at(j) << endl; }
+
+            cout << rows << endl;
+            cout << cols << endl;
+            
         myFile.close();
     }
 
@@ -110,12 +140,11 @@ void feature_search(string& file) {//, string& file) {need to take in text file 
 
 int main() {
     //ifstream myFile; 
+    srand(time(0));
 
-    //string file = "testFile.txt";
-    string file = "CS170_SMALLtestdata__65.txt";
+    string file = "testFile.txt";
+    //string file = "CS170_SMALLtestdata__65.txt";
     //string file = "CS170_largetestdata__7.txt";
-
-    //myFile.open(file);
 
     feature_search(file);
 

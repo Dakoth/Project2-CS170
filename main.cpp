@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+
 #include <sstream>
 #include <string>
 #include <vector>
@@ -10,14 +11,19 @@
 using namespace std; 
 
 
-double accuracy(fstream& f) { //temporarily for testing 
+//fstreams can both read in and out data, unlike just ifstream and ofstreams 
+
+
+//Takes in the fstream, 
+//Or maybe, just takes in the vector...
+double leave_one_out_cross_validation(fstream& f, vector<double> current_set, double feature_to_add) { //temporarily for testing 
     return rand() % 100; 
 } 
 
-void feature_search(string& file) {//, string& file) {need to take in text file as input 
-    
 
-    ifstream myFile; 
+void feature_search(string& file) {//, string& file) {need to take in text file as input 
+    //ifstream myFile; 
+    fstream myFile; 
     myFile.open(file);
 
     //Method for getting rows + cols of a text file 
@@ -45,28 +51,52 @@ void feature_search(string& file) {//, string& file) {need to take in text file 
         //
 
     
+        //Maybe make a 2D array from the string stream
+        //double fileArray[rows][cols];
+        vector< vector<double>> fileMatrix(rows, vector<double>(cols, 0));  //inialize a 2d vector filled with all 0s 
 
 
-        vector<int> current_set_of_features; 
+
+        //Does this need to be in the file stream? 
+
+        vector<double> current_set_of_features; //initalize an empty set 
+        double accuracy = 0; 
 
         //psuedo code part from slides
         for (int i = 1; i <= cols - 1; i++) {
+            //vector<double> feature_to_add_at_this_level; 
+            double feature_to_add_at_this_level; 
+
+            double best_so_far_accuracy = 0; 
             cout << "On the " << i << "th level of the search tree" << endl;
 
             for (int k = 1; k <= cols - 1; k++) {
-                cout << "--Consider adding the " << k << "th feature" << endl;
+                
+                //If the k-th feature hasn't been added yet 
+                //only consider adding
+                //below if statement is from: https://stackoverflow.com/questions/3450860/check-if-a-stdvector-contains-a-certain-object
+                if (find(feature_to_add_at_this_level.begin(), feature_to_add_at_this_level.end(), k) != feature_to_add_at_this_level.end()) {
+                    cout << "--Consider adding the " << k << "th feature" << endl;
+
+                    
+                    accuracy = leave_one_out_cross_validation(myFile, current_set_of_features, k+1);
+
+                    if (accuracy > best_so_far_accuracy) {
+                        best_so_far_accuracy = accuracy;
+                        //feature_to_add_at_this_level.push_back(k);  //puts this feature in the array. 
+                        feature_to_add_at_this_level = k;
+                    }
+
+                }
+    
             }
+            current_set_of_features.at(i) = feature_to_add_at_this_level;   //might need to edit this 
+            cout << "On level " << i << " I added featue " << feature_to_add_at_this_level << " to current set" << endl;
         }
-
-        
-
-
         cout << rows << endl;
         cout << cols << endl;
         myFile.close();
     }
-
-
 
     return; 
 }

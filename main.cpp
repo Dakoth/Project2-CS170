@@ -59,7 +59,7 @@ void feature_search(string& file) {//, string& file) {need to take in text file 
 
         //Does this need to be in the file stream? 
 
-        vector<double> current_set_of_features; //initalize an empty set 
+        vector<double> current_set_of_features(cols); //initalize an empty set the size of the features
         double accuracy = 0; 
 
         //psuedo code part from slides
@@ -75,8 +75,13 @@ void feature_search(string& file) {//, string& file) {need to take in text file 
                 //If the k-th feature hasn't been added yet 
                 //only consider adding
                 //below if statement is from: https://stackoverflow.com/questions/3450860/check-if-a-stdvector-contains-a-certain-object
-                if (find(feature_to_add_at_this_level.begin(), feature_to_add_at_this_level.end(), k) != feature_to_add_at_this_level.end()) {
+                if (find(current_set_of_features.begin(), current_set_of_features.end(), k) != current_set_of_features.end()) {
+                    //k feature has been added to the set 
+                }
+                else { 
                     cout << "--Consider adding the " << k << "th feature" << endl;
+
+                    //cout << "in the loop test" << endl;
 
                     
                     accuracy = leave_one_out_cross_validation(myFile, current_set_of_features, k+1);
@@ -93,6 +98,8 @@ void feature_search(string& file) {//, string& file) {need to take in text file 
             current_set_of_features.at(i) = feature_to_add_at_this_level;   //might need to edit this 
             cout << "On level " << i << " I added featue " << feature_to_add_at_this_level << " to current set" << endl;
         }
+
+        
         cout << rows << endl;
         cout << cols << endl;
         myFile.close();

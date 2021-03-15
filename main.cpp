@@ -11,12 +11,43 @@
 
 using namespace std; 
 
+int rows = 0;  //Counts the rows of the file
+int cols = 0;  //counts the cols of the file
+
 //fstreams can both read in and out data, unlike just ifstream and ofstreams 
 
 
 //Takes in the fstream, 
-//Or maybe, just takes in the vector...
-double leave_one_out_cross_validation(fstream& f, vector<double> current_set, double feature_to_add) { //temporarily for testing 
+//Or maybe, just takes in the vector instead of fstream
+//takes in a pointer to 2d vector instead of fstream
+//Pass in the row number from loop?                                                                            
+//is feature to add just an int?
+double leave_one_out_cross_validation(vector<vector<double>> &d , vector<double> &current_set, int feature_to_add) { //, int& r) { //temporarily for testing 
+    double accuracy; 
+
+    //initalize vector with cols - 1 with all 0 
+    vector<double> object_to_classify(cols - 1, 0);
+    double label_object_to_classify;
+
+    //rows 
+    //start at 1 or 0?
+    for (int i = 0; i < rows; i++) {
+
+        //initalize object to classify 
+        //might need to edit with this size
+        for (int j = 1; j < cols - 1; ++j) { 
+            object_to_classify[j - 1] = d[i][j];        //makes this the value from the data 
+        }
+
+        label_object_to_classify = d[i][0];
+        
+
+
+        cout << "Looping over i, at the " << i + 1 << " location" << endl;
+        cout << "The " << i + 1 << "th object is in this class: " << label_object_to_classify << endl;
+    }
+    
+    
     return rand(); 
 } 
 
@@ -28,8 +59,8 @@ void feature_search(string& file) {//, string& file) {need to take in text file 
 
     //Method for getting rows + cols of a text file 
     string line, item; 
-    int rows = 0;  //Counts the rows of the file
-    int cols = 0;  //counts the cols of the file
+    //int rows = 0;  //Counts the rows of the file
+    //int cols = 0;  //counts the cols of the file
 
     while (myFile.is_open()) {
         //Gets the number of cols and Rows from the file 
@@ -51,14 +82,24 @@ void feature_search(string& file) {//, string& file) {need to take in text file 
         //
 
     
-        //Maybe make a 2D array from the string stream
+        //Make a 2D array from the string stream
         //double fileArray[rows][cols];
         //vector< vector<double>> Data(rows, vector<double>(cols, 0));  //inialize a 2d vector filled with all 0s 
         const int tempRows = rows;
         const int tempCols = cols; 
 
         //Adapted here: https://stackoverflow.com/questions/36708370/reading-from-txt-file-into-two-dimensional-array-in-c
-        double Data[tempRows][tempCols];
+        //Reads from the file + places data into an array
+        
+        //double Data[tempRows][tempCols];
+        //would vector be better? 
+        //vector<vector<double>> Data;
+
+        //n rows, m columns 
+        //initalize an n x m vector with 0s 
+        vector<vector<double>> Data( rows, vector<double> (cols, 0)); 
+
+
         for(int i = 0; i < rows; i++)
             for(int j = 0; j < cols; j++)
                 myFile >> Data[i][j];
@@ -80,15 +121,16 @@ void feature_search(string& file) {//, string& file) {need to take in text file 
 
         //Does this need to be in the file stream? 
 
+        //psuedo code part from slides
         vector<double> current_set_of_features; //(cols); //initalize an empty set the size of the features
         double accuracy = 0; 
 
-        //psuedo code part from slides
+        
         for (int i = 1; i <= cols - 1; i++) {
             //vector<double> feature_to_add_at_this_level; 
             double feature_to_add_at_this_level; 
-
             double best_so_far_accuracy = 0; 
+
             cout << "On the " << i << "th level of the search tree" << endl;
 
             for (int k = 1; k <= cols - 1; k++) {
@@ -100,12 +142,12 @@ void feature_search(string& file) {//, string& file) {need to take in text file 
                     //k feature has been added to the set 
                 }
                 else {  //the k feature hasn't been added yet
-                    cout << "--Consider adding the " << k << "th feature" << endl;
+                    cout << "--Consider adding the " << k << " feature" << endl;
 
                     //cout << "in the loop test" << endl;
 
                     
-                    accuracy = leave_one_out_cross_validation(myFile, current_set_of_features, k+1);
+                    accuracy = leave_one_out_cross_validation(Data, current_set_of_features, k+1);
 
                     if (accuracy > best_so_far_accuracy) {
                         best_so_far_accuracy = accuracy;
@@ -140,14 +182,21 @@ void feature_search(string& file) {//, string& file) {need to take in text file 
 
 int main() {
     //ifstream myFile; 
-    srand(time(0));
+
+    srand(time(0)); //Just for stub 
+
+
 
     string file = "testFile.txt";
     //string file = "CS170_SMALLtestdata__65.txt";
     //string file = "CS170_largetestdata__7.txt";
 
+    //Insert intro here 
+
     feature_search(file);
 
+
+    
 
 
     return 0;

@@ -7,6 +7,9 @@
 #include <algorithm>
 
 #include <stdlib.h>  //for rand just for testing 
+#include <limits>   //Used for infinity 
+
+
 #include <time.h>
 
 using namespace std; 
@@ -25,12 +28,17 @@ int cols = 0;  //counts the cols of the file
 double leave_one_out_cross_validation(vector<vector<double>> &d , vector<double> &current_set, int feature_to_add) { //, int& r) { //temporarily for testing 
     double accuracy; 
 
+    double nearest_neighbor_distance;
+    double nearest_neighbor_location; 
+
     //initalize vector with cols - 1 with all 0 
     vector<double> object_to_classify(cols - 1, 0);
     double label_object_to_classify;
 
     //rows 
     //start at 1 or 0?
+
+    //Psuedocode part
     for (int i = 0; i < rows; i++) {
 
         //initalize object to classify 
@@ -40,14 +48,23 @@ double leave_one_out_cross_validation(vector<vector<double>> &d , vector<double>
         }
 
         label_object_to_classify = d[i][0];
+
+        //From here: https://en.cppreference.com/w/cpp/types/numeric_limits/infinity
+        nearest_neighbor_distance = numeric_limits<double>::infinity();
+        nearest_neighbor_location = numeric_limits<double>::infinity();
+
+        for (int k = 0; k < rows; k++) {
+            
+            if (k != i) {   //Don't compare to yourself
+                cout << "Ask if " << i + 1 << " is nearest neighbor with " << k + 1 << endl;
+            }
+
+        }
         
 
-
-        cout << "Looping over i, at the " << i + 1 << " location" << endl;
-        cout << "The " << i + 1 << "th object is in this class: " << label_object_to_classify << endl;
+        //cout << "Looping over i, at the " << i + 1 << " location" << endl;
+        //cout << "The " << i + 1 << "th object is in class: " << label_object_to_classify << endl;
     }
-    
-    
     return rand(); 
 } 
 
@@ -59,9 +76,6 @@ void feature_search(string& file) {//, string& file) {need to take in text file 
 
     //Method for getting rows + cols of a text file 
     string line, item; 
-    //int rows = 0;  //Counts the rows of the file
-    //int cols = 0;  //counts the cols of the file
-
     while (myFile.is_open()) {
         //Gets the number of cols and Rows from the file 
         //Adapted from here: http://www.cplusplus.com/forum/beginner/228327/
@@ -131,7 +145,7 @@ void feature_search(string& file) {//, string& file) {need to take in text file 
             double feature_to_add_at_this_level; 
             double best_so_far_accuracy = 0; 
 
-            cout << "On the " << i << "th level of the search tree" << endl;
+            //cout << "On the " << i << "th level of the search tree" << endl;      //COMMENTED OUT FOR TESTING
 
             for (int k = 1; k <= cols - 1; k++) {
                 
@@ -142,7 +156,7 @@ void feature_search(string& file) {//, string& file) {need to take in text file 
                     //k feature has been added to the set 
                 }
                 else {  //the k feature hasn't been added yet
-                    cout << "--Consider adding the " << k << " feature" << endl;
+                    //cout << "--Consider adding the " << k << " feature" << endl;      //COMMENTED OUT FOR TESTING
 
                     //cout << "in the loop test" << endl;
 
@@ -162,7 +176,8 @@ void feature_search(string& file) {//, string& file) {need to take in text file 
             //current_set_of_features.at(i) = feature_to_add_at_this_level;   //might need to edit this 
             current_set_of_features.push_back(feature_to_add_at_this_level);
 
-            cout << "On level " << i << " I added feature " << feature_to_add_at_this_level << " to current set" << endl;
+            //cout << "On level " << i << " I added feature " << feature_to_add_at_this_level << " to current set" << endl;
+            ////COMMENTED OUT FOR TESTING ^^^
         }
 
 
@@ -187,9 +202,11 @@ int main() {
 
 
 
-    string file = "testFile.txt";
+    //string file = "testFile.txt";
+    string file = "CS170_SMALLtestdata__1.txt";  //Set up like the example in the slides 
     //string file = "CS170_SMALLtestdata__65.txt";
     //string file = "CS170_largetestdata__7.txt";
+    //string file = "CS170_small_special_testdata__95.txt";
 
     //Insert intro here 
 

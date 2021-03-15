@@ -7,6 +7,7 @@
 #include <algorithm>
 
 #include <stdlib.h>  //for rand just for testing 
+#include <math.h>
 #include <limits>   //Used for infinity 
 
 
@@ -25,14 +26,16 @@ int cols = 0;  //counts the cols of the file
 //takes in a pointer to 2d vector instead of fstream
 //Pass in the row number from loop?                                                                            
 //is feature to add just an int?
-double leave_one_out_cross_validation(vector<vector<double>> &d , vector<double> &current_set, int feature_to_add) { //, int& r) { //temporarily for testing 
+
+                                                                       
+double leave_one_out_cross_validation(vector<vector<double>> &d, vector<double> &current_set, int feature_to_add) { //temporarily for testing 
     double accuracy; 
     
 
     double nearest_neighbor_distance;
     double nearest_neighbor_location; 
     double nearest_neighbor_label; 
-    double distance; 
+    double distance, sum;   //sum used for eucidean distance 
 
     //initalize vector with cols - 1 with all 0 
     vector<double> object_to_classify(cols - 1, 0);
@@ -57,12 +60,22 @@ double leave_one_out_cross_validation(vector<vector<double>> &d , vector<double>
         nearest_neighbor_location = numeric_limits<double>::infinity();
 
         for (int k = 0; k < rows; k++) {
-            cout << "Ask if " << i + 1 << " is nearest neighbor with " << k + 1 << endl;
+            //cout << "Ask if " << i + 1 << " is nearest neighbor with " << k + 1 << endl;
 
 
             //Eucludean Distance part 
             if (k != i) {   //Don't compare to yourself
-                distance = rand();          //FIX ME
+
+                //Calculate Euclidean distance
+                sum = 0;
+                double diff = 0;
+                for(int z = 1; z < cols; ++z){
+                        //sum += pow(object_to_classify[z - 1] - d[k][z], 2);
+                        diff = object_to_classify[z - 1] - d[k][z];
+                        sum += diff*diff;
+                }
+                //sqrt(sum);
+                distance = sqrt(sum);          //FIX ME
 
                 if (distance < nearest_neighbor_distance) {
                     nearest_neighbor_distance = distance;
@@ -82,9 +95,7 @@ double leave_one_out_cross_validation(vector<vector<double>> &d , vector<double>
 } 
 
 
-//
-
-
+//////////////////////////////////////////////////////////////////////////////////////////////////////
 void feature_search(vector<vector<double>> &Data) { //string& file) {//, string& file) {need to take in text file as input 
     //ifstream myFile; 
 
@@ -297,7 +308,14 @@ int main() {
     }
 
     //feature_search(file);
-    feature_search(Data);
+
+    //TESTING
+    //feature_search(Data);
+
+
+    vector<double> testV;
+    int t;
+    double test = leave_one_out_cross_validation(Data, testV, t);
 
 
     

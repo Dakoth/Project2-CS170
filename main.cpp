@@ -16,6 +16,8 @@ using namespace std;
 int rows = 0;  //Counts the rows of the file
 int cols = 0;  //counts the cols of the file
 
+int algorithm_Choice = 0;
+
 //fstreams can both read in and out data, unlike just ifstream and ofstreams 
 
 
@@ -51,14 +53,13 @@ double leave_one_out_cross_validation(vector<vector<double>> d, vector<double> &
    //cout << tempSet.at(0) << endl;
    
    for (int i = 0; i < rows; i++) {
-       //cout << "test" << endl;
         for (int j = 1; j <= cols - 1; j++)  {   
             //Checks at each index if it's equal to the index of the temp set
             for (int x = 0; x < tempSet.size(); x++) {       //Goes thru the testSet 
                 //Need to add + 1 to not accidently change the class label?
             
-                //
-                //if (j == tempSet.at(x) ) { 
+                
+                //Forward ...
                 if (find(tempSet.begin(), tempSet.end(), j) != tempSet.end()) {
                     //If the feature is in the tempSet, do nothing 
                 }
@@ -69,9 +70,6 @@ double leave_one_out_cross_validation(vector<vector<double>> d, vector<double> &
             }
         }
    }
-
-   //cout << "Exited editing vector loop" << endl;
-
     //test print of edited vector
         /*
         for(int i = 0; i < rows; i++) { 
@@ -82,9 +80,6 @@ double leave_one_out_cross_validation(vector<vector<double>> d, vector<double> &
             }   
             cout << endl;
         }
-        
-    int TESTTT;
-    cin >> TESTTT;
     */
 
     //Psuedocode part
@@ -132,7 +127,6 @@ double leave_one_out_cross_validation(vector<vector<double>> d, vector<double> &
                         //diff = object_to_classify[z - 1] - d[k][z];
                         //sum += diff*diff;
                 }
-                //sqrt(sum);
                 distance = sqrt(sum);          
 
                 if (distance < nearest_neighbor_distance) {
@@ -144,7 +138,6 @@ double leave_one_out_cross_validation(vector<vector<double>> d, vector<double> &
         }
         
         if (label_object_to_classify == nearest_neighbor_label) {
-            //cout << "Correct!" << endl;
             number_correctly_classified += 1;
         }
         
@@ -155,11 +148,13 @@ double leave_one_out_cross_validation(vector<vector<double>> d, vector<double> &
         //cout << "Looping over i, at the " << i + 1 << " location" << endl;
         //cout << "The " << i + 1 << "th object is in class: " << label_object_to_classify << endl;
     }
-    //cout << "number_coreclty is : " << number_correctly_classified << endl;
-    //cout << "Number of rows is : " << rows << endl;
     accuracy = number_correctly_classified / (rows);    //number of rows is the size of the data
 
     cout << "accuracy is " << accuracy << endl;
+
+    //int TESTTT;
+    //cin >> TESTTT;
+
     return accuracy; 
 } 
 
@@ -175,9 +170,14 @@ void feature_search(vector<vector<double>> &Data) { //string& file) {//, string&
     double best_so_far_accuracy = 0; 
     double feature_to_add_at_this_level; 
 
+    double BEST_accuracy = best_so_far_accuracy; 
+
+    //double all_features_accuracy =leave_one_out_cross_validation(Data, current_set_of_features, 0);
     
     for (int i = 1; i <= cols - 1; i++) {
         //vector<double> feature_to_add_at_this_level; 
+        best_so_far_accuracy = 0; 
+        feature_to_add_at_this_level = 0; //Make this always 0 just in case? 
         
         
 
@@ -204,13 +204,19 @@ void feature_search(vector<vector<double>> &Data) { //string& file) {//, string&
 
                 if (accuracy > best_so_far_accuracy) {
                     best_so_far_accuracy = accuracy;
-                    //feature_to_add_at_this_level.push_back(k);  //puts this feature in the array. 
                     feature_to_add_at_this_level = k;
-                    best_set_of_features.push_back(feature_to_add_at_this_level);
+
+                    
+                    //feature_to_add_at_this_level.push_back(k);  //puts this feature in the array.    
                 }
-
             }
+        }
 
+        //Only add to the best accuracy set if the GLOBAL MAX accuracy is best than local max
+        if (best_so_far_accuracy > BEST_accuracy) {
+            cout << "new global max found" << endl;
+            BEST_accuracy = best_so_far_accuracy;
+            best_set_of_features.push_back(feature_to_add_at_this_level);
         }
 
         //current_set_of_features.at(i) = feature_to_add_at_this_level;   //might need to edit this 
@@ -221,22 +227,26 @@ void feature_search(vector<vector<double>> &Data) { //string& file) {//, string&
     }
 
 
+    double all_features_accuracy = leave_one_out_cross_validation(Data, current_set_of_features, 0);
 
     //TESTING STUFF     
-        //testing size of the current set of features 
-        //for (int j = 0; j < current_set_of_features.size(); j++) { cout << current_set_of_features.at(j) << endl; }
+    //testing size of the current set of features 
+    //for (int j = 0; j < current_set_of_features.size(); j++) { cout << current_set_of_features.at(j) << endl; }
 
-        cout << rows << endl;
-        cout << cols << endl;
-        cout << "Best Accuracy is: " << best_so_far_accuracy << endl;
+    cout << rows << endl;
+    cout << cols << endl;
+    //cout << "Best Accuracy is: " << best_so_far_accuracy << endl;
+    
+    cout << "Best Accuracy was " << BEST_accuracy << endl;
 
-        cout << "The set of best features is: ";
-        for (int i = 0; i < best_set_of_features.size(); i++) {
-            cout << best_set_of_features[i] << " ";
-        }
-        cout << endl;
-            
-    //    myFile.close();
+    cout << "The set of best features is: ";
+    for (int i = 0; i < best_set_of_features.size(); i++) {
+        cout << best_set_of_features[i] << " ";
+    }
+    cout << endl;
+    cout << " accuracy with all features is: " << all_features_accuracy << endl;
+        
+//    myFile.close();
     //}
 
     return; 
@@ -244,18 +254,25 @@ void feature_search(vector<vector<double>> &Data) { //string& file) {//, string&
 
 int main() {
     //ifstream myFile; 
-
-    srand(time(0)); //Just for stub 
-
+    //srand(time(0)); //Just for stub 
 
 
+
+    string file = "";
     //string file = "testFile.txt";
     //string file = "CS170_SMALLtestdata__1.txt";  //Set up like the example in the slides 
     //string file = "CS170_SMALLtestdata__65.txt";
     //string file = "CS170_largetestdata__7.txt";
-    string file = "CS170_small_special_testdata__95.txt";
+    //string file = "CS170_small_special_testdata__99.txt";
 
     //Insert intro here 
+    cout << "Welcome to Alfredo Gonzalez's Feature Selection Algorithm." << endl;
+    cout << "Type in the name of the file to test: ";
+    //cin >> file; 
+    file = "CS170_small_special_testdata__99.txt";
+    cout << endl;
+
+    cout << "Type the number of the algorithm you want to run." << endl;
 
 
     //Converts file into a 2Darray 
@@ -276,36 +293,20 @@ int main() {
                 while ( ss >> item ) cols++;  // Each item delineated by spaces adds one to cols
             }   
         }
-        //
-
-        //cols--; //accounts for the extra column counted
         //Clears the fstream + restarts it to the beginning
         //From here: https://stackoverflow.com/questions/7681555/resetting-the-end-of-file-state-of-a-ifstream-object-in-c
         myFile.clear();
-        myFile.seekg(0, ios::beg);
-        //
-
-    
+        myFile.seekg(0, ios::beg);    
         //Make a 2D array from the string stream
-        //double fileArray[rows][cols];
-        //vector< vector<double>> Data(rows, vector<double>(cols, 0));  //inialize a 2d vector filled with all 0s 
-        //const int tempRows = rows;
-        //const int tempCols = cols; 
-
         //Adapted here: https://stackoverflow.com/questions/36708370/reading-from-txt-file-into-two-dimensional-array-in-c
         //Reads from the file + places data into an array
-        
-        //double Data[tempRows][tempCols];
-        //would vector be better? 
-        //vector<vector<double>> Data;
+
 
         //n rows, m columns 
         //initalize an n x m vector with 0s 
         //vector<vector<double>> Data( rows, vector<double> (cols, 0)); 
         //int m = number of rows, n = number of columns;
         Data.resize(rows, vector<double>(cols));
-
-
         for(int i = 0; i < rows; i++)
             for(int j = 0; j < cols; j++)
                 myFile >> Data[i][j];

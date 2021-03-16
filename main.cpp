@@ -1,6 +1,5 @@
 #include <iostream>
 #include <fstream>
-
 #include <sstream>
 #include <string>
 #include <vector>
@@ -9,11 +8,7 @@
 #include <stdlib.h>  //for rand just for testing 
 #include <math.h>
 #include <limits>   //Used for infinity 
-
-
 #include <iomanip>  //setprecision
-
-
 #include <time.h>
 
 using namespace std; 
@@ -25,11 +20,16 @@ int cols = 0;  //counts the cols of the file
 
 
 //Takes in the fstream,                                          
-//is feature to add just an int?                                                                       
-double leave_one_out_cross_validation(vector<vector<double>> &d, vector<double> &current_set, int feature_to_add) { //temporarily for testing 
-    double accuracy; 
+//is feature to add just an int?               
+//If I make a copy of Data, then I can freely edit it as I please,
+    //But this could make things much more costly if I do that...   
+    //got rid of &d, maybe this works?                                                      
+double leave_one_out_cross_validation(vector<vector<double>> d, vector<double> &current_set, double feature_to_add) { //temporarily for testing 
+    vector<double> tempSet = current_set;   //Temp set is the current set of features + the feature you're looking to add
+    tempSet.push_back(feature_to_add);  
     
-
+    
+    double accuracy; 
     double nearest_neighbor_distance;
     double nearest_neighbor_location; 
     double nearest_neighbor_label; 
@@ -44,8 +44,48 @@ double leave_one_out_cross_validation(vector<vector<double>> &d, vector<double> 
     //cout << "object to classifiy is size: " << object_to_classify.size() << endl;
     //cin >> label_object_to_classify;            //TEST
 
-    //rows 
-    //start at 1 or 0?
+
+
+    //Edit parts of the Data vector to IGNORE
+   //cout << "Haven't edited data vector, tempSize is " << tempSet.size() << endl;
+   //cout << tempSet.at(0) << endl;
+   
+   for (int i = 0; i < rows; i++) {
+       //cout << "test" << endl;
+        for (int j = 1; j <= cols - 1; j++)  {   
+            //Checks at each index if it's equal to the index of the temp set
+            for (int x = 0; x < tempSet.size(); x++) {       //Goes thru the testSet 
+                //Need to add + 1 to not accidently change the class label?
+            
+                //
+                //if (j == tempSet.at(x) ) { 
+                if (find(tempSet.begin(), tempSet.end(), j) != tempSet.end()) {
+                    //If the feature is in the tempSet, do nothing 
+                }
+                else { //else, sets the feature value to 0 
+                    d[i][j] = 0;             //Sets the value of the i-th row, with added feature to be 0 // should it be +1?
+                }
+                //cout << "ay" << endl;
+            }
+        }
+   }
+
+   //cout << "Exited editing vector loop" << endl;
+
+    //test print of edited vector
+        /*
+        for(int i = 0; i < rows; i++) { 
+            //cout << endl;
+            for(int j = 0; j <= cols - 1; j++) {
+                cout << d[i][j] << " "; 
+                //if (j = rows - 1) { cout << endl;}
+            }   
+            cout << endl;
+        }
+        
+    int TESTTT;
+    cin >> TESTTT;
+    */
 
     //Psuedocode part
     for (int i = 0; i < rows; i++) {
@@ -128,15 +168,20 @@ double leave_one_out_cross_validation(vector<vector<double>> &d, vector<double> 
 void feature_search(vector<vector<double>> &Data) { //string& file) {//, string& file) {need to take in text file as input 
     //psuedo code part from slides
     vector<double> current_set_of_features; //(cols); //initalize an empty set the size of the features
+
+    vector<double> best_set_of_features;    //Used to measure the best set of features, new addition
     double accuracy = 0; 
+
+    double best_so_far_accuracy = 0; 
+    double feature_to_add_at_this_level; 
 
     
     for (int i = 1; i <= cols - 1; i++) {
         //vector<double> feature_to_add_at_this_level; 
-        double feature_to_add_at_this_level; 
-        double best_so_far_accuracy = 0; 
+        
+        
 
-        //cout << "On the " << i << "th level of the search tree" << endl;      //COMMENTED OUT FOR TESTING
+        cout << "On the " << i << "th level of the search tree" << endl;      //COMMENTED OUT FOR TESTING
 
         for (int k = 1; k <= cols - 1; k++) {
             
@@ -147,17 +192,21 @@ void feature_search(vector<vector<double>> &Data) { //string& file) {//, string&
                 //k feature has been added to the set 
             }
             else {  //the k feature hasn't been added yet
-                //cout << "--Consider adding the " << k << " feature" << endl;      //COMMENTED OUT FOR TESTING
+                cout << "--Consider adding the " << k << " feature" << endl;      //COMMENTED OUT FOR TESTING
 
                 //cout << "in the loop test" << endl;
 
-                
-                accuracy = leave_one_out_cross_validation(Data, current_set_of_features, k+1);
+                //LOOK AT THIS LATER
+                //*******************************
+                accuracy = leave_one_out_cross_validation(Data, current_set_of_features, k);    //SHOULD THIS BE k instead of k + 1????
+                //*******************************
+
 
                 if (accuracy > best_so_far_accuracy) {
                     best_so_far_accuracy = accuracy;
                     //feature_to_add_at_this_level.push_back(k);  //puts this feature in the array. 
                     feature_to_add_at_this_level = k;
+                    best_set_of_features.push_back(feature_to_add_at_this_level);
                 }
 
             }
@@ -167,7 +216,7 @@ void feature_search(vector<vector<double>> &Data) { //string& file) {//, string&
         //current_set_of_features.at(i) = feature_to_add_at_this_level;   //might need to edit this 
         current_set_of_features.push_back(feature_to_add_at_this_level);
 
-        //cout << "On level " << i << " I added feature " << feature_to_add_at_this_level << " to current set" << endl;
+        cout << "On level " << i << " I added feature " << feature_to_add_at_this_level << " to current set" << endl;
         ////COMMENTED OUT FOR TESTING ^^^
     }
 
@@ -179,6 +228,13 @@ void feature_search(vector<vector<double>> &Data) { //string& file) {//, string&
 
         cout << rows << endl;
         cout << cols << endl;
+        cout << "Best Accuracy is: " << best_so_far_accuracy << endl;
+
+        cout << "The set of best features is: ";
+        for (int i = 0; i < best_set_of_features.size(); i++) {
+            cout << best_set_of_features[i] << " ";
+        }
+        cout << endl;
             
     //    myFile.close();
     //}
@@ -194,10 +250,10 @@ int main() {
 
 
     //string file = "testFile.txt";
-    string file = "CS170_SMALLtestdata__1.txt";  //Set up like the example in the slides 
+    //string file = "CS170_SMALLtestdata__1.txt";  //Set up like the example in the slides 
     //string file = "CS170_SMALLtestdata__65.txt";
     //string file = "CS170_largetestdata__7.txt";
-    //string file = "CS170_small_special_testdata__95.txt";
+    string file = "CS170_small_special_testdata__95.txt";
 
     //Insert intro here 
 
@@ -275,16 +331,11 @@ int main() {
     //feature_search(file);
 
     //TESTING
-    //feature_search(Data);
+    feature_search(Data);
 
 
-    vector<double> testV;
-    int t;
-    double test = leave_one_out_cross_validation(Data, testV, t);
-
-
-    
-
-
+    //vector<double> testV;
+    //int t;
+    //double test = leave_one_out_cross_validation(Data, testV, t);
     return 0;
 }

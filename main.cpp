@@ -10,6 +10,10 @@
 #include <iomanip>  //setprecision
 #include <time.h>
 
+#include <numeric>  //Used to fill array for backward selection
+
+#include <chrono>   //For getting execution time 
+
 using namespace std; 
 
 int rows = 0;  //Counts the rows of the file
@@ -23,7 +27,17 @@ int algorithm_Choice = 0;
     //got rid of &d, maybe this works?                                                      
 double leave_one_out_cross_validation(vector<vector<double>> d, vector<double> &current_set, double feature_to_add) { //temporarily for testing 
     vector<double> tempSet = current_set;   //Temp set is the current set of features + the feature you're looking to add
-    tempSet.push_back(feature_to_add);  
+
+    //Add the feature to add to the set for forward selection
+    if (algorithm_Choice == 1) {
+        tempSet.push_back(feature_to_add);  
+    }
+    else {  //else take the feature to remove it for back elim 
+        if ( feature_to_add != 0) {             //Just sets the feature to 0
+            //tempSet.erase(tempSet.begin() + feature_to_add - 1);
+            tempSet.at(feature_to_add - 1) = 0;
+        }
+    }
     
     
     double accuracy; 
@@ -56,20 +70,29 @@ double leave_one_out_cross_validation(vector<vector<double>> d, vector<double> &
                     }
                 }
                 else {  //BACKWARDS ELIMATION
+                   
                     if (find(tempSet.begin(), tempSet.end(), j) != tempSet.end()) {
-                    //if (j == tempSet.at(x)) {
-                        d[i][j] = 0;             //Sets the value of the i-th row, with added feature to be 0 
+                    //if (j != tempSet.at(x)) {
+                        //d[i][j] = 0;             //Sets the value of the i-th row, with added feature to be 0 
                         //If the feature is in the tempSet, do nothing 
                     }
                     else { //else, sets the feature value to 0 
+                        //if (d[i][j] != 0)
+                        d[i][j] = 0; 
+                        //d[i][j] = 0;
                         //else do nothing 
                     }
+                    
+                    /*if (tempSet.at(x) == 0) {       //If comes arcross a 0, change that element in the data 
+                        d[i][j] = 0;
+                    }
+                    */
                 }
             }
         }
    }
     //test print of edited vector
-        ///*
+     /*
         for(int i = 0; i < rows; i++) { 
             //cout << endl;
             for(int j = 0; j <= cols - 1; j++) {
@@ -142,9 +165,24 @@ double leave_one_out_cross_validation(vector<vector<double>> d, vector<double> &
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 void feature_search(vector<vector<double>> &Data) { //string& file) {//, string& file) {need to take in text file as input 
     //psuedo code part from slides
-    vector<double> current_set_of_features;  //initalize an empty set the size of the features
 
-    vector<double> best_set_of_features;    //Used to measure the best set of features, new addition
+    vector<double> current_set_of_features;
+    //For Foward Selection
+    if (algorithm_Choice == 1) {
+    }
+    else {      //For back elim
+        current_set_of_features.resize(cols -1);
+        //From here: https://stackoverflow.com/questions/17694579/use-stdfill-to-populate-vector-with-increasing-numbers
+        iota(current_set_of_features.begin(), current_set_of_features.end(), 1);
+
+        //for (int i = 0; i < current_set_of_features.size(); i++ )
+        //    cout << current_set_of_features.at(i) << endl;
+    }
+    
+    //int TESTTTT;
+    //cin >> TESTTTT;
+
+    vector<double> best_set_of_features = current_set_of_features;    //Used to measure the best set of features
     double accuracy = 0; 
 
     double best_so_far_accuracy = 0; 
@@ -152,32 +190,55 @@ void feature_search(vector<vector<double>> &Data) { //string& file) {//, string&
 
     double BEST_accuracy = best_so_far_accuracy; 
 
-    double no_features_accuracy = leave_one_out_cross_validation(Data, current_set_of_features, 0);
+    double inital_accuracy = leave_one_out_cross_validation(Data, current_set_of_features, 0);
+    cout << "test" << endl;
     
     for (int i = 1; i <= cols - 1; i++) {
-        //vector<double> feature_to_add_at_this_level; 
         best_so_far_accuracy = 0; 
         feature_to_add_at_this_level = 0; //Make this always 0 just in case? 
+
         cout << "On the " << i << "th level of the search tree" << endl;      //COMMENTED OUT FOR TESTING
 
         for (int k = 1; k <= cols - 1; k++) {
             
-            //If the k-th feature hasn't been added yet 
-            //only consider adding
-            //below if statement is from: https://stackoverflow.com/questions/3450860/check-if-a-stdvector-contains-a-certain-object
-            if (find(current_set_of_features.begin(), current_set_of_features.end(), k) != current_set_of_features.end()) {
-                //k feature has been added to the set 
-            }
-            else {  //the k feature hasn't been added yet
-                cout << "--Consider adding the " << k << " feature" << endl;      //COMMENTED OUT FOR TESTING
-                //*******************************
-                accuracy = leave_one_out_cross_validation(Data, current_set_of_features, k);    //SHOULD THIS BE k instead of k + 1????
-                //*******************************
+            //FORWARD SELECTION 
+            if (algorithm_Choice == 1) {
+                //If the k-th feature hasn't been added yet 
+                //below if statement is from: https://stackoverflow.com/questions/3450860/check-if-a-stdvector-contains-a-certain-object
+                if (find(current_set_of_features.begin(), current_set_of_features.end(), k) != current_set_of_features.end()) {
+                    //k feature has been added to the set 
+                }
+                else {  //the k feature hasn't been added yet
+                    cout << "--Consider adding the " << k << " feature" << endl;      
+                    //*******************************
+                    accuracy = leave_one_out_cross_validation(Data, current_set_of_features, k);    
+                    //*******************************
 
 
-                if (accuracy > best_so_far_accuracy) {
-                    best_so_far_accuracy = accuracy;
-                    feature_to_add_at_this_level = k;
+                    if (accuracy > best_so_far_accuracy) {
+                        best_so_far_accuracy = accuracy;
+                        feature_to_add_at_this_level = k;
+                    }
+                }
+            }           
+            else {  //BACKWARD ELIMINATION
+                //If the k-th feature hasn't been added yet 
+                if (find(current_set_of_features.begin(), current_set_of_features.end(), k) != current_set_of_features.end()) {
+                    
+                    //k feature has been added to the set 
+                    cout << "--Consider removing the " << k << " feature" << endl;     
+                    //*******************************
+                    accuracy = leave_one_out_cross_validation(Data, current_set_of_features, k);    
+                    //*******************************
+
+
+                    if (accuracy > best_so_far_accuracy) {
+                        best_so_far_accuracy = accuracy;
+                        feature_to_add_at_this_level = k;
+                    }
+                }
+                else {  //the k feature hasn't been added yet
+                    
                 }
             }
         }
@@ -188,10 +249,17 @@ void feature_search(vector<vector<double>> &Data) { //string& file) {//, string&
             BEST_accuracy = best_so_far_accuracy;
             best_set_of_features.push_back(feature_to_add_at_this_level);
         }
-        current_set_of_features.push_back(feature_to_add_at_this_level);
 
-        cout << "On level " << i << " I added feature " << feature_to_add_at_this_level << " to current set" << endl;
-        ////COMMENTED OUT FOR TESTING ^^^
+
+        if (algorithm_Choice == 1) { //Forward selection
+            current_set_of_features.push_back(feature_to_add_at_this_level);
+            cout << "On level " << i << " I added feature " << feature_to_add_at_this_level << " to current set" << endl;
+        }
+        else { //BACK ELIM, ****
+            //current_set_of_features.erase(current_set_of_features.begin() + feature_to_add_at_this_level - 1);
+            current_set_of_features.at(feature_to_add_at_this_level - 1) = 0;       //Sets the removed feature to 0, Don't know if this works
+            cout << "On level " << i << " I removed feature " << feature_to_add_at_this_level << " from current set" << endl;
+        }
     }
 
 
@@ -204,7 +272,7 @@ void feature_search(vector<vector<double>> &Data) { //string& file) {//, string&
     cout << rows << endl;
     cout << cols << endl;
 
-    cout << "Accuracy with no features is: " << no_features_accuracy << endl;
+    cout << "Inital Accuracy (with all/no features) is: " << inital_accuracy << endl;
     cout << "Best Accuracy was " << BEST_accuracy << endl;
 
     cout << "The set of best features is: ";
@@ -212,15 +280,13 @@ void feature_search(vector<vector<double>> &Data) { //string& file) {//, string&
         cout << best_set_of_features[i] << " ";
     }
     cout << endl;
-    cout << "Accuracy with all features is: " << all_features_accuracy << endl;
+    cout << "Final Accuracy (with all/no features) is: " << all_features_accuracy << endl;
     return; 
 }
 
 int main() {
-    //ifstream myFile; 
-    //srand(time(0)); //Just for stub 
     string file = "";
-    //string file = "testFile.txt";
+    fstream myFile; 
     //file = "CS170_SMALLtestdata__1.txt";  //Set up like the example in the slides 
     // file = "CS170_SMALLtestdata__65.txt";
     // file = "CS170_largetestdata__7.txt";
@@ -228,21 +294,39 @@ int main() {
 
     //Insert intro here 
     cout << "Welcome to Alfredo Gonzalez's Feature Selection Algorithm." << endl;
-    cout << "Type in the name of the file to test: ";
-    //cin >> file; 
-    file = "CS170_small_special_testdata__99.txt";
-    cout << endl;
+
+    bool is_open = 0;
+    while (!is_open) {
+        cout << "Type in the name of the file to test: ";
+        //cin >> file; 
+        file = "CS170_small_special_testdata__95.txt";
+        //file = "CS170_SMALLtestdata__1.txt";
+        cout << endl;
+        myFile.open(file);
+        if (myFile.fail()) {
+            cout << "Please enter a valid file name" << endl;
+        }
+        else { is_open = 1;}
+        //cout << is_open << endl;
+    }
+
 
     cout << "Type the number of the algorithm you want to run." << endl;
     cout << "   1.) Forward Selection" << endl;
     cout << "   2.) Backward Selection" << endl;
-    cin >> algorithm_Choice;    //Used later in the program 
+    while (algorithm_Choice != 1 && algorithm_Choice != 2) { 
+        cin >> algorithm_Choice;    //Used later in the program 
+        if (algorithm_Choice != 1 && algorithm_Choice != 2) {
+            cout << "Please pick a valid choice." << endl;
+        }
+    }
 
 
     //Converts file into a 2Darray 
     vector<vector<double>> Data( rows, vector<double> (cols, 0)); 
-    fstream myFile; 
-    myFile.open(file);
+    
+    //fstream myFile; 
+    //myFile.open(file);
 
     //Method for getting rows + cols of a text file 
     string line, item; 
@@ -272,7 +356,6 @@ int main() {
             for(int j = 0; j < cols; j++)
                 myFile >> Data[i][j];
 
-
         //test print of the array 
         /*
         for(int i = 0; i < rows; i++) { 
@@ -290,14 +373,15 @@ int main() {
         myFile.close();
     }
 
-    //feature_search(file);
-
+    
     //TESTING
+    chrono::time_point<chrono::system_clock> start, end; 
+    start = chrono::system_clock::now();
     feature_search(Data);
+    end = chrono::system_clock::now();     
 
-
-    //vector<double> testV;
-    //int t;
-    //double test = leave_one_out_cross_validation(Data, testV, t);
+    chrono::duration<double> elapsed_seconds = end - start;    
+    cout << "Elapsed time of algorithm is: " << elapsed_seconds.count() << " s" << endl; //FOR TESTING
+   
     return 0;
 }

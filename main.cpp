@@ -191,7 +191,8 @@ void feature_search(vector<vector<double>> &Data) { //string& file) {//, string&
     double BEST_accuracy = best_so_far_accuracy; 
 
     double inital_accuracy = leave_one_out_cross_validation(Data, current_set_of_features, 0);
-    cout << "test" << endl;
+
+    cout << "Beginning Search" << endl;
     
     for (int i = 1; i <= cols - 1; i++) {
         best_so_far_accuracy = 0; 
@@ -245,9 +246,16 @@ void feature_search(vector<vector<double>> &Data) { //string& file) {//, string&
 
         //Only add to the best accuracy set if the GLOBAL MAX accuracy is best than local max
         if (best_so_far_accuracy > BEST_accuracy) {
-            //cout << "new global max found" << endl;
             BEST_accuracy = best_so_far_accuracy;
-            best_set_of_features.push_back(feature_to_add_at_this_level);
+
+            if (algorithm_Choice == 1) {
+                best_set_of_features.push_back(feature_to_add_at_this_level);
+            }
+            else {
+                best_set_of_features.at(feature_to_add_at_this_level - 1) = 0;//.erase(best_set_of_features.begin() + feature_to_add_at_this_level - 1); //this should work?
+            }
+
+           
         }
 
 
@@ -277,7 +285,8 @@ void feature_search(vector<vector<double>> &Data) { //string& file) {//, string&
 
     cout << "The set of best features is: ";
     for (int i = 0; i < best_set_of_features.size(); i++) {
-        cout << best_set_of_features[i] << " ";
+        if (best_set_of_features[i] > 0)            //Accounts for backwards selection
+            cout << best_set_of_features[i] << " ";
     }
     cout << endl;
     cout << "Final Accuracy (with all/no features) is: " << all_features_accuracy << endl;
@@ -299,7 +308,7 @@ int main() {
     while (!is_open) {
         cout << "Type in the name of the file to test: ";
         //cin >> file; 
-        file = "CS170_small_special_testdata__95.txt";
+        file = "CS170_small_special_testdata__99.txt";
         //file = "CS170_SMALLtestdata__1.txt";
         cout << endl;
         myFile.open(file);
@@ -356,23 +365,12 @@ int main() {
             for(int j = 0; j < cols; j++)
                 myFile >> Data[i][j];
 
-        //test print of the array 
-        /*
-        for(int i = 0; i < rows; i++) { 
-            //cout << endl;
-            for(int j = 1; j <= cols - 1; j++) {
-                cout << Data[i][j] << " "; 
-                //if (j = rows - 1) { cout << endl;}
-            }   
-            cout << endl;
-        }
-        */
-        //int TEST;
-        //cin >> TEST;
 
         myFile.close();
     }
 
+    
+    cout << "This dataset has " << cols - 1 << " features (not including the class attribute), with " << rows << " instances" << endl;
     
     //TESTING
     chrono::time_point<chrono::system_clock> start, end; 

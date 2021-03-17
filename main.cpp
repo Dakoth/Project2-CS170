@@ -145,15 +145,9 @@ double leave_one_out_cross_validation(vector<vector<double>> d, vector<double> &
         if (label_object_to_classify == nearest_neighbor_label) {
             number_correctly_classified += 1;
         }
-        
-        //cout << "Object " << i + 1 << " is class " << label_object_to_classify << endl;
-        //cout << "Its nearest_neighbor is " << nearest_neighbor_location + 1 << " which is in class " << nearest_neighbor_label << endl;
-                                                //IS THIS CORRECT??????
-        //cout << "Looping over i, at the " << i + 1 << " location" << endl;
-        //cout << "The " << i + 1 << "th object is in class: " << label_object_to_classify << endl;
     }
     accuracy = number_correctly_classified / (rows);    //number of rows is the size of the data
-    cout << "accuracy is " << accuracy << endl;
+    //cout << "accuracy is " << setprecision(2) << accuracy << endl;
 
     //int TESTTT;
     //cin >> TESTTT;
@@ -193,12 +187,12 @@ void feature_search(vector<vector<double>> &Data) { //string& file) {//, string&
     double inital_accuracy = leave_one_out_cross_validation(Data, current_set_of_features, 0);
 
     cout << "Beginning Search" << endl;
-    
+    cout << endl;
     for (int i = 1; i <= cols - 1; i++) {
         best_so_far_accuracy = 0; 
         feature_to_add_at_this_level = 0; //Make this always 0 just in case? 
 
-        cout << "On the " << i << "th level of the search tree" << endl;      //COMMENTED OUT FOR TESTING
+       //cout << "On the " << i << "th level of the search tree" << endl;      //COMMENTED OUT
 
         for (int k = 1; k <= cols - 1; k++) {
             
@@ -210,10 +204,16 @@ void feature_search(vector<vector<double>> &Data) { //string& file) {//, string&
                     //k feature has been added to the set 
                 }
                 else {  //the k feature hasn't been added yet
-                    cout << "--Consider adding the " << k << " feature" << endl;      
+                    //cout << "--Consider adding the " << k << " feature" << endl;      
                     //*******************************
                     accuracy = leave_one_out_cross_validation(Data, current_set_of_features, k);    
                     //*******************************
+
+                    cout << "   Using feature(s) { ";
+                    for (int p = 0; p < current_set_of_features.size(); p++) {
+                        cout << current_set_of_features[p] << " ";
+                    }
+                    cout << k << " } accuracy is " << accuracy << endl;
 
 
                     if (accuracy > best_so_far_accuracy) {
@@ -227,10 +227,20 @@ void feature_search(vector<vector<double>> &Data) { //string& file) {//, string&
                 if (find(current_set_of_features.begin(), current_set_of_features.end(), k) != current_set_of_features.end()) {
                     
                     //k feature has been added to the set 
-                    cout << "--Consider removing the " << k << " feature" << endl;     
+                    //cout << "--Consider removing the " << k << " feature" << endl;     
                     //*******************************
                     accuracy = leave_one_out_cross_validation(Data, current_set_of_features, k);    
                     //*******************************
+
+                    //Print matching paper
+                    cout << "   Using feature(s) { ";
+                    for (int p = 0; p < current_set_of_features.size(); p++) {  //size  -1? 
+                        if (current_set_of_features[p] > 0) { // && (p == k - 1) )
+                            if (p != k - 1) 
+                                cout << current_set_of_features[p] << " ";
+                        }
+                    }
+                    cout << " } accuracy is " << accuracy << endl;
 
 
                     if (accuracy > best_so_far_accuracy) {
@@ -261,13 +271,25 @@ void feature_search(vector<vector<double>> &Data) { //string& file) {//, string&
 
         if (algorithm_Choice == 1) { //Forward selection
             current_set_of_features.push_back(feature_to_add_at_this_level);
-            cout << "On level " << i << " I added feature " << feature_to_add_at_this_level << " to current set" << endl;
+            //cout << "On level " << i << " I added feature " << feature_to_add_at_this_level << " to current set" << endl;
         }
         else { //BACK ELIM, ****
             //current_set_of_features.erase(current_set_of_features.begin() + feature_to_add_at_this_level - 1);
             current_set_of_features.at(feature_to_add_at_this_level - 1) = 0;       //Sets the removed feature to 0, Don't know if this works
-            cout << "On level " << i << " I removed feature " << feature_to_add_at_this_level << " from current set" << endl;
+            //cout << "On level " << i << " I removed feature " << feature_to_add_at_this_level << " from current set" << endl;
         }
+
+        //If the BEST Accuracy decreases as it's going
+        if (BEST_accuracy > best_so_far_accuracy) {
+            cout << "(Warning, Accuracy has decreased! Continuing search in case of local maxima)" << endl;
+        }
+
+        cout << "Feature set { "; 
+            for (int p = 0; p < current_set_of_features.size(); p++) {
+                if (current_set_of_features.at(p) > 0)
+                    cout << current_set_of_features[p] << " ";
+            }
+            cout << " } was best, accuracy is " << best_so_far_accuracy << endl;
     }
 
 
@@ -277,18 +299,21 @@ void feature_search(vector<vector<double>> &Data) { //string& file) {//, string&
     //testing size of the current set of features 
     //for (int j = 0; j < current_set_of_features.size(); j++) { cout << current_set_of_features.at(j) << endl; }
 
-    cout << rows << endl;
-    cout << cols << endl;
+    //cout << rows << endl;
+    //cout << cols << endl;
 
     cout << "Inital Accuracy (with all/no features) is: " << inital_accuracy << endl;
-    cout << "Best Accuracy was " << BEST_accuracy << endl;
+    //cout << "Best Accuracy was " << BEST_accuracy << endl;
 
-    cout << "The set of best features is: ";
+
+    cout << "Finished Search!!! The best feature subset is { ";
     for (int i = 0; i < best_set_of_features.size(); i++) {
         if (best_set_of_features[i] > 0)            //Accounts for backwards selection
             cout << best_set_of_features[i] << " ";
     }
-    cout << endl;
+    cout << "}, which has an accuracy of " << BEST_accuracy << endl;
+
+
     cout << "Final Accuracy (with all/no features) is: " << all_features_accuracy << endl;
     return; 
 }
@@ -308,8 +333,11 @@ int main() {
     while (!is_open) {
         cout << "Type in the name of the file to test: ";
         //cin >> file; 
-        file = "CS170_small_special_testdata__99.txt";
+        //file = "CS170_small_special_testdata__99.txt";
         //file = "CS170_SMALLtestdata__1.txt";
+
+        //file = "CS170_SMALLtestdata__65.txt";        //My test files
+        file = "CS170_largetestdata__7.txt";
         cout << endl;
         myFile.open(file);
         if (myFile.fail()) {

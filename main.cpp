@@ -20,11 +20,20 @@ int rows = 0;  //Counts the rows of the file
 int cols = 0;  //counts the cols of the file
 int algorithm_Choice = 0;
 
+
+//Here https://stackoverflow.com/questions/58881746/c-how-to-cout-and-write-at-the-same-time
+// used to output results to a txt file
+void fn(string output) {
+
+    ofstream file("output.txt");
+
+    cout << output;
+    file << output;
+
+}
+
 //fstreams can both read in and out data, unlike just ifstream and ofstreams                                      
-//is feature to add just an int?               
-//If I make a copy of Data, then I can freely edit it as I please,
-    //But this could make things much more costly if I do that...   
-    //got rid of &d, maybe this works?                                                      
+//is feature to add just an int?                                       
 double leave_one_out_cross_validation(vector<vector<double>> d, vector<double> &current_set, double feature_to_add) { //temporarily for testing 
     vector<double> tempSet = current_set;   //Temp set is the current set of features + the feature you're looking to add
 
@@ -45,7 +54,6 @@ double leave_one_out_cross_validation(vector<vector<double>> d, vector<double> &
     double nearest_neighbor_location; 
     double nearest_neighbor_label; 
     double distance, sum;   //sum used for eucidean distance 
-
     double number_correctly_classified = 0;
 
     //initalize vector with cols - 1 with all 0 
@@ -53,11 +61,10 @@ double leave_one_out_cross_validation(vector<vector<double>> d, vector<double> &
     double label_object_to_classify = 0;
 
     //Edit parts of the Data vector to IGNORE 
-   for (int i = 0; i < rows; i++) {
+    for (int i = 0; i < rows; i++) {
         for (int j = 1; j <= cols - 1; j++)  {   
             //Checks at each index if it's equal to the index of the temp set
-            for (int x = 0; x < tempSet.size(); x++) {       //Goes thru the testSet 
-                //Need to add + 1 to not accidently change the class label?
+            for (int x = 0; x < tempSet.size(); x++) {                      //Goes thru the testSet 
             
                 
                 //FORWARD SELECTION
@@ -72,21 +79,12 @@ double leave_one_out_cross_validation(vector<vector<double>> d, vector<double> &
                 else {  //BACKWARDS ELIMATION
                    
                     if (find(tempSet.begin(), tempSet.end(), j) != tempSet.end()) {
-                    //if (j != tempSet.at(x)) {
-                        //d[i][j] = 0;             //Sets the value of the i-th row, with added feature to be 0 
                         //If the feature is in the tempSet, do nothing 
                     }
                     else { //else, sets the feature value to 0 
-                        //if (d[i][j] != 0)
                         d[i][j] = 0; 
-                        //d[i][j] = 0;
                         //else do nothing 
                     }
-                    
-                    /*if (tempSet.at(x) == 0) {       //If comes arcross a 0, change that element in the data 
-                        d[i][j] = 0;
-                    }
-                    */
                 }
             }
         }
@@ -112,9 +110,6 @@ double leave_one_out_cross_validation(vector<vector<double>> d, vector<double> &
         }
 
         label_object_to_classify = d[i][0];
-
-        //setprecision(9);  //Don't know if this makes a difference
-
         //From here: https://en.cppreference.com/w/cpp/types/numeric_limits/infinity
         nearest_neighbor_distance = numeric_limits<double>::infinity();
         nearest_neighbor_location = numeric_limits<double>::infinity();
@@ -124,19 +119,16 @@ double leave_one_out_cross_validation(vector<vector<double>> d, vector<double> &
             if (k != i) {   //Don't compare to yourself
 
                 //Calculate Euclidean distance
-                //MIGHT NEED TO FIX 
                 sum = 0;
                 double diff = 0;
-                for(int z = 1; z <= cols - 1; z++){     //Should be cols - 1?
+                for(int z = 1; z <= cols - 1; z++){    
                         sum += pow(object_to_classify[z - 1] - d[k][z], 2);
-                        //diff = object_to_classify[z - 1] - d[k][z];
-                        //sum += diff*diff;
                 }
                 distance = sqrt(sum);          
 
                 if (distance < nearest_neighbor_distance) {
                     nearest_neighbor_distance = distance;
-                    nearest_neighbor_location = k;                      ///IS THIS CORRECT?????
+                    nearest_neighbor_location = k;                      
                     nearest_neighbor_label = d[nearest_neighbor_location][0];
                 }
             }
@@ -147,7 +139,6 @@ double leave_one_out_cross_validation(vector<vector<double>> d, vector<double> &
         }
     }
     accuracy = number_correctly_classified / (rows);    //number of rows is the size of the data
-    //cout << "accuracy is " << setprecision(2) << accuracy << endl;
 
     //int TESTTT;
     //cin >> TESTTT;
@@ -158,6 +149,7 @@ double leave_one_out_cross_validation(vector<vector<double>> d, vector<double> &
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 void feature_search(vector<vector<double>> &Data) { //string& file) {//, string& file) {need to take in text file as input 
+    stringstream buffer;                //Used to output to textfile
     //psuedo code part from slides
 
     vector<double> current_set_of_features;
@@ -168,14 +160,8 @@ void feature_search(vector<vector<double>> &Data) { //string& file) {//, string&
         current_set_of_features.resize(cols -1);
         //From here: https://stackoverflow.com/questions/17694579/use-stdfill-to-populate-vector-with-increasing-numbers
         iota(current_set_of_features.begin(), current_set_of_features.end(), 1);
-
-        //for (int i = 0; i < current_set_of_features.size(); i++ )
-        //    cout << current_set_of_features.at(i) << endl;
     }
     
-    //int TESTTTT;
-    //cin >> TESTTTT;
-
     vector<double> best_set_of_features = current_set_of_features;    //Used to measure the best set of features
     double accuracy = 0; 
 
@@ -213,7 +199,7 @@ void feature_search(vector<vector<double>> &Data) { //string& file) {//, string&
                     for (int p = 0; p < current_set_of_features.size(); p++) {
                         cout << current_set_of_features[p] << " ";
                     }
-                    cout << k << " } accuracy is " << accuracy << endl;
+                    cout << k << " } accuracy is " << setprecision(5) << accuracy << endl;
 
 
                     if (accuracy > best_so_far_accuracy) {
@@ -235,12 +221,12 @@ void feature_search(vector<vector<double>> &Data) { //string& file) {//, string&
                     //Print matching paper
                     cout << "   Using feature(s) { ";
                     for (int p = 0; p < current_set_of_features.size(); p++) {  //size  -1? 
-                        if (current_set_of_features[p] > 0) { // && (p == k - 1) )
+                        if (current_set_of_features[p] > 0) { 
                             if (p != k - 1) 
                                 cout << current_set_of_features[p] << " ";
                         }
                     }
-                    cout << " } accuracy is " << accuracy << endl;
+                    cout << " } accuracy is " << setprecision(5) << accuracy << endl;
 
 
                     if (accuracy > best_so_far_accuracy) {
@@ -274,7 +260,6 @@ void feature_search(vector<vector<double>> &Data) { //string& file) {//, string&
             //cout << "On level " << i << " I added feature " << feature_to_add_at_this_level << " to current set" << endl;
         }
         else { //BACK ELIM, ****
-            //current_set_of_features.erase(current_set_of_features.begin() + feature_to_add_at_this_level - 1);
             current_set_of_features.at(feature_to_add_at_this_level - 1) = 0;       //Sets the removed feature to 0, Don't know if this works
             //cout << "On level " << i << " I removed feature " << feature_to_add_at_this_level << " from current set" << endl;
         }
@@ -284,34 +269,43 @@ void feature_search(vector<vector<double>> &Data) { //string& file) {//, string&
             cout << "(Warning, Accuracy has decreased! Continuing search in case of local maxima)" << endl;
         }
 
+
+        ///////////////////////////////////////////
+        //Outputs without writing to text file
         cout << "Feature set { "; 
-            for (int p = 0; p < current_set_of_features.size(); p++) {
-                if (current_set_of_features.at(p) > 0)
-                    cout << current_set_of_features[p] << " ";
-            }
-            cout << " } was best, accuracy is " << best_so_far_accuracy << endl;
+        for (int p = 0; p < current_set_of_features.size(); p++) {
+            if (current_set_of_features.at(p) > 0)
+                cout << current_set_of_features[p] << " ";
+        }
+        cout << " } was best, accuracy is " << best_so_far_accuracy << endl;
+        //*/
+
+
+       /* //Outputs to screen + writes to text file
+        buffer << "Feature set { "; 
+        for (int p = 0; p < current_set_of_features.size(); p++) {
+            if (current_set_of_features.at(p) > 0)
+                buffer << current_set_of_features[p] << " ";
+        }
+        buffer << " } was best, accuracy is " << best_so_far_accuracy << endl;
+        fn(buffer.str());   
+        */ 
     }
 
 
     double all_features_accuracy = leave_one_out_cross_validation(Data, current_set_of_features, 0);
 
-    //TESTING STUFF     
-    //testing size of the current set of features 
-    //for (int j = 0; j < current_set_of_features.size(); j++) { cout << current_set_of_features.at(j) << endl; }
-
     //cout << rows << endl;
     //cout << cols << endl;
 
     cout << "Inital Accuracy (with all/no features) is: " << inital_accuracy << endl;
-    //cout << "Best Accuracy was " << BEST_accuracy << endl;
-
 
     cout << "Finished Search!!! The best feature subset is { ";
     for (int i = 0; i < best_set_of_features.size(); i++) {
         if (best_set_of_features[i] > 0)            //Accounts for backwards selection
             cout << best_set_of_features[i] << " ";
     }
-    cout << "}, which has an accuracy of " << BEST_accuracy << endl;
+    cout << "}, which has an accuracy of " << setprecision(5) << BEST_accuracy << endl;
 
 
     cout << "Final Accuracy (with all/no features) is: " << all_features_accuracy << endl;
@@ -321,9 +315,6 @@ void feature_search(vector<vector<double>> &Data) { //string& file) {//, string&
 int main() {
     string file = "";
     fstream myFile; 
-    //file = "CS170_SMALLtestdata__1.txt";  //Set up like the example in the slides 
-    // file = "CS170_SMALLtestdata__65.txt";
-    // file = "CS170_largetestdata__7.txt";
     // file = "CS170_small_special_testdata__99.txt";
 
     //Insert intro here 
@@ -332,25 +323,23 @@ int main() {
     bool is_open = 0;
     while (!is_open) {
         cout << "Type in the name of the file to test: ";
-        //cin >> file; 
+        cin >> file; 
         //file = "CS170_small_special_testdata__99.txt";
-        //file = "CS170_SMALLtestdata__1.txt";
 
         //file = "CS170_SMALLtestdata__65.txt";        //My test files
-        file = "CS170_largetestdata__7.txt";
+        //file = "CS170_largetestdata__7.txt";
         cout << endl;
         myFile.open(file);
         if (myFile.fail()) {
             cout << "Please enter a valid file name" << endl;
         }
         else { is_open = 1;}
-        //cout << is_open << endl;
     }
 
 
     cout << "Type the number of the algorithm you want to run." << endl;
     cout << "   1.) Forward Selection" << endl;
-    cout << "   2.) Backward Selection" << endl;
+    cout << "   2.) Backward Elimination" << endl;
     while (algorithm_Choice != 1 && algorithm_Choice != 2) { 
         cin >> algorithm_Choice;    //Used later in the program 
         if (algorithm_Choice != 1 && algorithm_Choice != 2) {
@@ -362,9 +351,6 @@ int main() {
     //Converts file into a 2Darray 
     vector<vector<double>> Data( rows, vector<double> (cols, 0)); 
     
-    //fstream myFile; 
-    //myFile.open(file);
-
     //Method for getting rows + cols of a text file 
     string line, item; 
     while (myFile.is_open()) {
@@ -382,22 +368,19 @@ int main() {
         //From here: https://stackoverflow.com/questions/7681555/resetting-the-end-of-file-state-of-a-ifstream-object-in-c
         myFile.clear();
         myFile.seekg(0, ios::beg);    
+
         //Make a 2D array from the string stream
         //Adapted here: https://stackoverflow.com/questions/36708370/reading-from-txt-file-into-two-dimensional-array-in-c
         //Reads from the file + places data into an array
-
-
         //n rows, m columns 
         Data.resize(rows, vector<double>(cols));
         for(int i = 0; i < rows; i++)
             for(int j = 0; j < cols; j++)
                 myFile >> Data[i][j];
 
-
         myFile.close();
     }
-
-    
+ 
     cout << "This dataset has " << cols - 1 << " features (not including the class attribute), with " << rows << " instances" << endl;
     
     //TESTING

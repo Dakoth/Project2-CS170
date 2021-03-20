@@ -140,9 +140,6 @@ double leave_one_out_cross_validation(vector<vector<double>> d, vector<double> &
     }
     accuracy = number_correctly_classified / (rows);    //number of rows is the size of the data
 
-    //int TESTTT;
-    //cin >> TESTTT;
-
     return accuracy; 
 } 
 
@@ -169,6 +166,7 @@ void feature_search(vector<vector<double>> &Data) { //string& file) {//, string&
     double feature_to_add_at_this_level; 
 
     double BEST_accuracy = best_so_far_accuracy; 
+    bool accuracy_decreased = 0;
 
     double inital_accuracy = leave_one_out_cross_validation(Data, current_set_of_features, 0);
 
@@ -265,13 +263,15 @@ void feature_search(vector<vector<double>> &Data) { //string& file) {//, string&
         }
 
         //If the BEST Accuracy decreases as it's going
-        if (BEST_accuracy > best_so_far_accuracy) {
+        if (BEST_accuracy > best_so_far_accuracy && !accuracy_decreased) {
             cout << "(Warning, Accuracy has decreased! Continuing search in case of local maxima)" << endl;
+            accuracy_decreased = 1;
         }
 
 
         ///////////////////////////////////////////
         //Outputs without writing to text file
+        ///*
         cout << "Feature set { "; 
         for (int p = 0; p < current_set_of_features.size(); p++) {
             if (current_set_of_features.at(p) > 0)
@@ -281,7 +281,7 @@ void feature_search(vector<vector<double>> &Data) { //string& file) {//, string&
         //*/
 
 
-       /* //Outputs to screen + writes to text file
+        /*//Outputs to screen + writes to text file
         buffer << "Feature set { "; 
         for (int p = 0; p < current_set_of_features.size(); p++) {
             if (current_set_of_features.at(p) > 0)
@@ -289,7 +289,7 @@ void feature_search(vector<vector<double>> &Data) { //string& file) {//, string&
         }
         buffer << " } was best, accuracy is " << best_so_far_accuracy << endl;
         fn(buffer.str());   
-        */ 
+        //*/ 
     }
 
 
@@ -298,7 +298,6 @@ void feature_search(vector<vector<double>> &Data) { //string& file) {//, string&
     //cout << rows << endl;
     //cout << cols << endl;
 
-    cout << "Inital Accuracy (with all/no features) is: " << inital_accuracy << endl;
 
     cout << "Finished Search!!! The best feature subset is { ";
     for (int i = 0; i < best_set_of_features.size(); i++) {
@@ -307,17 +306,17 @@ void feature_search(vector<vector<double>> &Data) { //string& file) {//, string&
     }
     cout << "}, which has an accuracy of " << setprecision(5) << BEST_accuracy << endl;
 
-
-    cout << "Final Accuracy (with all/no features) is: " << all_features_accuracy << endl;
+    cout << endl;
+    cout << "Initial Accuracy with no [F.S.] / all[B.E.] features is: " << inital_accuracy << endl;
+    cout << "Final Accuracy (with all [F.S.]/ no[B.E.] features) is: " << all_features_accuracy << endl;
     return; 
 }
 
 int main() {
     string file = "";
     fstream myFile; 
-    // file = "CS170_small_special_testdata__99.txt";
 
-    //Insert intro here 
+    //Intro
     cout << "Welcome to Alfredo Gonzalez's Feature Selection Algorithm." << endl;
 
     bool is_open = 0;

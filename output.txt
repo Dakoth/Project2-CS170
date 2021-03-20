@@ -1,0 +1,10 @@
+Feature set { 1 2 3 4 5 6 8 9 10  } was best, accuracy is 0.776667
+Feature set { 1 2 3 4 5 8 9 10  } was best, accuracy is 0.8
+Feature set { 1 2 3 4 5 9 10  } was best, accuracy is 0.806667
+Feature set { 1 2 3 5 9 10  } was best, accuracy is 0.853333
+Feature set { 1 2 5 9 10  } was best, accuracy is 0.876667
+Feature set { 1 2 9 10  } was best, accuracy is 0.9
+Feature set { 1 9 10  } was best, accuracy is 0.95
+Feature set { 9 10  } was best, accuracy is 0.976667
+Feature set { 10  } was best, accuracy is 0.886667
+Feature set {  } was best, accuracy is 0.813333
